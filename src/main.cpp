@@ -4,6 +4,7 @@
 #include "chain.h"
 
 #include <iostream>
+#include <vector>
 
 void PrintDependencyVersions()
 {
@@ -90,6 +91,103 @@ void PrintDevices()
     std::cout << "\n" << std::endl;
 }
 
+std::vector<PaDeviceInfo> LoadDevices()
+{
+    std::vector<PaDeviceInfo> device_list;
+
+    for (int idx = 0; idx < Pa_GetDeviceCount(); idx++)
+    {
+        device_list.push_back(*Pa_GetDeviceInfo(idx));
+    }
+
+    return device_list;
+}
+
+PaDeviceInfo UserSelectInputDevice(std::vector<PaDeviceInfo> device_list)
+{
+    std::vector<PaDeviceInfo> options;
+
+    for (int idx = 0; idx < device_list.size(); idx++)
+    {
+        PaDeviceInfo this_device = device_list.at(idx);
+
+        if (this_device.maxInputChannels > 0)
+        {
+            options.push_back(this_device);
+        }
+    }
+
+    std::cout << "Select an input device:\n";
+
+    for (int idx = 0; idx < options.size(); idx++)
+    {
+        std::cout
+            << "(" 
+            << idx + 1 
+            << ") "
+            << options.at(idx).name
+            << "\n";
+    }
+    
+    std::cout << "\n" << std::endl;
+
+    int choice = -1;
+    while (choice > options.size() || choice < 1)
+    {
+        std::cout << "\033[A\033[2K\rSelection: ";
+        std::cin >> choice;
+    }
+    std::cout 
+        << "\033[A\rSelection: "
+        << options.at(choice - 1).name
+        << "\n\n";
+
+    return options.at(choice - 1);
+}
+
+PaDeviceInfo UserSelectOutputDevice(std::vector<PaDeviceInfo> device_list)
+{
+    std::vector<PaDeviceInfo> options;
+
+    for (int idx = 0; idx < device_list.size(); idx++)
+    {
+        PaDeviceInfo this_device = device_list.at(idx);
+
+        if (this_device.maxOutputChannels > 0)
+        {
+            options.push_back(this_device);
+        }
+    }
+
+    std::cout << "Select an output device:\n";
+
+    for (int idx = 0; idx < options.size(); idx++)
+    {
+        std::cout
+            << "(" 
+            << idx + 1 
+            << ") "
+            << options.at(idx).name
+            << "\n";
+    }
+    
+    std::cout << "\n" << std::endl;
+
+    int choice = -1;
+    while (choice > options.size() || choice < 1)
+    {
+        std::cout << "\033[A\033[2K\rSelection: ";
+        std::cin >> choice;
+    }
+        std::cout 
+        << "\033[A\rSelection: "
+        << options.at(choice - 1).name
+        << "\n\n";
+
+    return options.at(choice - 1);
+}
+
+
 int main()
 {
     SDL_Init(SDL_INIT_EVENTS);
@@ -98,7 +196,10 @@ int main()
     PrintDependencyVersions();
     PrintDevices();
 
-    
+    std::vector<PaDeviceInfo> device_list = LoadDevices();
+
+    PaDeviceInfo chosen_input_device = UserSelectInputDevice(device_list);
+    PaDeviceInfo chosen_output_device = UserSelectOutputDevice(device_list);
 
  
     Pa_Terminate();
