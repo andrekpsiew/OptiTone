@@ -1,0 +1,3 @@
+/Users/andrewsalois/Desktop/optitone/build/CMakeFiles/OptiTone.dir
+/Users/andrewsalois/Desktop/optitone/build/CMakeFiles/edit_cache.dir
+/Users/andrewsalois/Desktop/optitone/build/CMakeFiles/rebuild_cache.dir
