@@ -5,6 +5,8 @@
 
 #include <iostream>
 #include <vector>
+#include <string>
+#include <utility>
 
 void PrintDependencyVersions()
 {
@@ -91,100 +93,107 @@ void PrintDevices()
     std::cout << "\n" << std::endl;
 }
 
-std::vector<PaDeviceInfo> LoadDevices()
+PaDeviceIndex UserSelectInputDevice()
 {
-    std::vector<PaDeviceInfo> device_list;
+    std::vector<std::pair<PaDeviceIndex, const PaDeviceInfo*>> device_choices;
 
-    for (int idx = 0; idx < Pa_GetDeviceCount(); idx++)
+    for (int i = 0; i < Pa_GetDeviceCount(); ++i)
     {
-        device_list.push_back(*Pa_GetDeviceInfo(idx));
-    }
+        const PaDeviceInfo* this_device = Pa_GetDeviceInfo(i);
 
-    return device_list;
-}
-
-PaDeviceInfo UserSelectInputDevice(std::vector<PaDeviceInfo> device_list)
-{
-    std::vector<PaDeviceInfo> options;
-
-    for (int idx = 0; idx < device_list.size(); idx++)
-    {
-        PaDeviceInfo this_device = device_list.at(idx);
-
-        if (this_device.maxInputChannels > 0)
+        if (this_device->maxInputChannels > 0)
         {
-            options.push_back(this_device);
+            device_choices.push_back({i, this_device});
         }
     }
 
     std::cout << "Select an input device:\n";
-
-    for (int idx = 0; idx < options.size(); idx++)
+    for (int i = 0; i < device_choices.size(); i++)
     {
-        std::cout
-            << "(" 
-            << idx + 1 
-            << ") "
-            << options.at(idx).name
-            << "\n";
+        std::cout << "(" << i + 1 << ") " << device_choices.at(i).second->name << "\n";
     }
-    
     std::cout << "\n" << std::endl;
 
     int choice = -1;
-    while (choice > options.size() || choice < 1)
+    while (choice > device_choices.size() || choice < 1)
     {
         std::cout << "\033[A\033[2K\rSelection: ";
         std::cin >> choice;
     }
-    std::cout 
-        << "\033[A\rSelection: "
-        << options.at(choice - 1).name
-        << "\n\n";
 
-    return options.at(choice - 1);
+    std::cout << "\033[A\rSelection: " << device_choices.at(choice - 1).second->name << "\n\n" << std::endl;
+
+
+    return device_choices.at(choice - 1).first;
 }
 
-PaDeviceInfo UserSelectOutputDevice(std::vector<PaDeviceInfo> device_list)
+PaDeviceIndex UserSelectOutputDevice()
 {
-    std::vector<PaDeviceInfo> options;
+    std::vector<std::pair<PaDeviceIndex, const PaDeviceInfo*>> device_choices;
 
-    for (int idx = 0; idx < device_list.size(); idx++)
+    for (int i = 0; i < Pa_GetDeviceCount(); ++i)
     {
-        PaDeviceInfo this_device = device_list.at(idx);
+        const PaDeviceInfo* this_device = Pa_GetDeviceInfo(i);
 
-        if (this_device.maxOutputChannels > 0)
+        if (this_device->maxOutputChannels > 0)
         {
-            options.push_back(this_device);
+            device_choices.push_back({i, this_device});
         }
     }
 
     std::cout << "Select an output device:\n";
-
-    for (int idx = 0; idx < options.size(); idx++)
+    for (int i = 0; i < device_choices.size(); i++)
     {
-        std::cout
-            << "(" 
-            << idx + 1 
-            << ") "
-            << options.at(idx).name
-            << "\n";
+        std::cout << "(" << i + 1 << ") " << device_choices.at(i).second->name << "\n";
     }
-    
     std::cout << "\n" << std::endl;
 
     int choice = -1;
-    while (choice > options.size() || choice < 1)
+    while (choice > device_choices.size() || choice < 1)
     {
         std::cout << "\033[A\033[2K\rSelection: ";
         std::cin >> choice;
     }
-        std::cout 
-        << "\033[A\rSelection: "
-        << options.at(choice - 1).name
-        << "\n\n";
 
-    return options.at(choice - 1);
+    std::cout << "\033[A\rSelection: " << device_choices.at(choice - 1).second->name << "\n\n" << std::endl;
+
+
+    return device_choices.at(choice - 1).first;
+}
+
+PaStream* ProvideStream(int input_device_idx, int output_device_idx)
+{
+    const PaDeviceInfo* input_device = Pa_GetDeviceInfo(input_device_idx);
+    const PaDeviceInfo* output_device = Pa_GetDeviceInfo(output_device_idx);
+
+    PaStreamParameters input_device_parameters = 
+    {
+        input_device_idx,
+        input_device->maxInputChannels,
+        paFloat32,
+        input_device->defaultLowInputLatency,
+        NULL
+    };
+
+    PaStreamParameters output_device_parameters = 
+    {
+        output_device_idx,
+        output_device->maxOutputChannels,
+        paFloat32,
+        output_device->defaultLowOutputLatency,
+        NULL
+    };
+
+    PaError format_support = Pa_IsFormatSupported(&input_device_parameters, &output_device_parameters, 48000.0);
+    
+    if (format_support != paFormatIsSupported)
+    {
+        std::cout << "ERROR: " << Pa_GetErrorText(format_support) << '\n' << std::endl;
+        return NULL;
+    }
+    std::cout << "Stream between " << input_device->name << " and " << output_device->name << " is supported" << std::endl;
+
+    return NULL;
 }
 
 
@@ -196,12 +205,12 @@ int main()
     PrintDependencyVersions();
     PrintDevices();
 
-    std::vector<PaDeviceInfo> device_list = LoadDevices();
+    PaDeviceIndex input_device_idx = UserSelectInputDevice();
+    PaDeviceIndex output_device_idx = UserSelectOutputDevice();
 
-    PaDeviceInfo chosen_input_device = UserSelectInputDevice(device_list);
-    PaDeviceInfo chosen_output_device = UserSelectOutputDevice(device_list);
-
+    PaStream* stream = ProvideStream(input_device_idx, output_device_idx);
  
+
     Pa_Terminate();
     SDL_Quit();
 }
