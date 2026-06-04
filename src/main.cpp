@@ -6,6 +6,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <cstring>
 #include <utility>
 
 void PrintDependencyVersions()
@@ -161,14 +162,34 @@ PaDeviceIndex UserSelectOutputDevice()
     return device_choices.at(choice - 1).first;
 }
 
-PaStream* ProvideStream(int input_device_idx, int output_device_idx)
+int audioCallback(
+    const void *input,
+    void *output,
+    unsigned long frameCount,
+    const PaStreamCallbackTimeInfo *timeInfo,
+    PaStreamCallbackFlags statusFlags,
+    void *userData)
 {
-    const PaDeviceInfo* input_device = Pa_GetDeviceInfo(input_device_idx);
-    const PaDeviceInfo* output_device = Pa_GetDeviceInfo(output_device_idx);
+    const float* in  = static_cast<const float*>(input);
+    float* out = static_cast<float*>(output);
+
+    for (unsigned long i = 0; i < frameCount; i++)
+    {
+        out[i * 2] = in[i] * 3;
+        out[i * 2 + 1] = in[i] * 3;
+    }
+
+    return paContinue;
+}
+
+PaStream* ProvideStream(int input_device_i, int output_device_i)
+{
+    const PaDeviceInfo* input_device = Pa_GetDeviceInfo(input_device_i);
+    const PaDeviceInfo* output_device = Pa_GetDeviceInfo(output_device_i);
 
     PaStreamParameters input_device_parameters = 
     {
-        input_device_idx,
+        input_device_i,
         input_device->maxInputChannels,
         paFloat32,
         input_device->defaultLowInputLatency,
@@ -177,7 +198,7 @@ PaStream* ProvideStream(int input_device_idx, int output_device_idx)
 
     PaStreamParameters output_device_parameters = 
     {
-        output_device_idx,
+        output_device_i,
         output_device->maxOutputChannels,
         paFloat32,
         output_device->defaultLowOutputLatency,
@@ -206,7 +227,7 @@ PaStream* ProvideStream(int input_device_idx, int output_device_idx)
             48000.0,
             256,
             paNoFlag,
-            NULL,
+            audioCallback,
             NULL
         ) != paNoError
     )
@@ -216,7 +237,7 @@ PaStream* ProvideStream(int input_device_idx, int output_device_idx)
     }
 
 
-    std::cout << "Stream between " << input_device->name << " and " << output_device->name << " was provided" << std::endl;
+    std::cout << "Opened stream between " << input_device->name << " and " << output_device->name << '\n' << std::endl;
     return stream;
 }
 
@@ -229,11 +250,16 @@ int main()
     PrintDependencyVersions();
     PrintDevices();
 
-    PaDeviceIndex input_device_idx = UserSelectInputDevice();
-    PaDeviceIndex output_device_idx = UserSelectOutputDevice();
+    PaDeviceIndex input_device_i = UserSelectInputDevice();
+    PaDeviceIndex output_device_i = UserSelectOutputDevice();
 
-    PaStream* stream = ProvideStream(input_device_idx, output_device_idx);
- 
+    PaStream* stream = ProvideStream(input_device_i, output_device_i);
+
+    Pa_StartStream(stream);
+
+    int x;
+    std::cin >> x;
+    Pa_StopStream(stream);
 
     Pa_Terminate();
     SDL_Quit();
