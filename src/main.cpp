@@ -184,16 +184,40 @@ PaStream* ProvideStream(int input_device_idx, int output_device_idx)
         NULL
     };
 
+
     PaError format_support = Pa_IsFormatSupported(&input_device_parameters, &output_device_parameters, 48000.0);
     
     if (format_support != paFormatIsSupported)
     {
-        std::cout << "ERROR: " << Pa_GetErrorText(format_support) << '\n' << std::endl;
+        std::cout << "ERROR: " << Pa_GetErrorText(format_support) << std::endl;
         return NULL;
     }
     std::cout << "Stream between " << input_device->name << " and " << output_device->name << " is supported" << std::endl;
 
-    return NULL;
+    
+    PaStream* stream = nullptr;
+    
+    if 
+    (
+        Pa_OpenStream(
+            &stream,
+            &input_device_parameters,
+            &output_device_parameters,
+            48000.0,
+            256,
+            paNoFlag,
+            NULL,
+            NULL
+        ) != paNoError
+    )
+    {
+        std::cout << "ERROR: " << Pa_GetErrorText(format_support) << std::endl;
+        return NULL;
+    }
+
+
+    std::cout << "Stream between " << input_device->name << " and " << output_device->name << " was provided" << std::endl;
+    return stream;
 }
 
 

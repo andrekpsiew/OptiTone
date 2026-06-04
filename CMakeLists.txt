@@ -1,5 +1,3 @@
-# Kindly generated for me by the big Claude because theres no fucking way im doing ts.
-
 cmake_minimum_required(VERSION 4.3)
 project(OptiTone VERSION 1.0 LANGUAGES CXX)
 
@@ -20,7 +18,7 @@ find_package(SDL2 REQUIRED)
 include_directories(/opt/homebrew/include)
 
 target_link_libraries(
-    OptiTone
+    ${PROJECT_NAME}
     PRIVATE
     /opt/homebrew/lib/libportaudio.dylib
     SDL2::SDL2
