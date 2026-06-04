@@ -170,13 +170,20 @@ int audioCallback(
     PaStreamCallbackFlags statusFlags,
     void *userData)
 {
-    const float* in  = static_cast<const float*>(input);
+    const float GAIN = 64.0f;
+
+    const float* in = static_cast<const float*>(input);
     float* out = static_cast<float*>(output);
+
+    if (!in)
+        return paContinue;
 
     for (unsigned long i = 0; i < frameCount; i++)
     {
-        out[i * 2] = in[i] * 3;
-        out[i * 2 + 1] = in[i] * 3;
+        float s = std::tanh(in[i * 2 + 1] * GAIN);
+
+        out[i * 2]     = s; // left
+        out[i * 2 + 1] = s; // right
     }
 
     return paContinue;
