@@ -7,6 +7,7 @@
 #include <vector>
 #include <string>
 #include <cstring>
+#include <sstream>
 #include <utility>
 
 void PrintDependencyVersions()
@@ -122,7 +123,7 @@ PaDeviceIndex UserSelectInputDevice()
         std::cin >> choice;
     }
 
-    std::cout << "\033[A\rSelection: " << device_choices.at(choice - 1).second->name << "\n\n" << std::endl;
+    std::cout << "\033[A\rSelection: " << device_choices.at(choice - 1).second->name << "\n" << std::endl;
 
 
     return device_choices.at(choice - 1).first;
@@ -156,7 +157,7 @@ PaDeviceIndex UserSelectOutputDevice()
         std::cin >> choice;
     }
 
-    std::cout << "\033[A\rSelection: " << device_choices.at(choice - 1).second->name << "\n\n" << std::endl;
+    std::cout << "\033[A\rSelection: " << device_choices.at(choice - 1).second->name << "\n" << std::endl;
 
 
     return device_choices.at(choice - 1).first;
@@ -170,7 +171,7 @@ int audioCallback(
     PaStreamCallbackFlags statusFlags,
     void *userData)
 {
-    const float GAIN = 64.0f;
+    const float GAIN = 3.0f;
 
     const float* in = static_cast<const float*>(input);
     float* out = static_cast<float*>(output);
@@ -180,7 +181,7 @@ int audioCallback(
 
     for (unsigned long i = 0; i < frameCount; i++)
     {
-        float s = std::tanh(in[i * 2 + 1] * GAIN);
+        float s = in[i] * GAIN;
 
         out[i * 2]     = s; // left
         out[i * 2 + 1] = s; // right
@@ -243,9 +244,48 @@ PaStream* ProvideStream(int input_device_i, int output_device_i)
         return NULL;
     }
 
-
     std::cout << "Opened stream between " << input_device->name << " and " << output_device->name << '\n' << std::endl;
     return stream;
+}
+
+std::pair<std::string, PaStream*> UserEstablishStream()
+{
+    PaDeviceIndex input_device_i = UserSelectInputDevice();
+    PaDeviceIndex output_device_i = UserSelectOutputDevice();
+
+    PaStream* stream = ProvideStream(input_device_i, output_device_i);
+
+    std::cout << "\nName this stream: ";
+    
+    std::string identifier;
+    if (std::cin.peek() == '\n') std::cin.ignore();
+    std::getline(std::cin, identifier);
+    std::cin >> identifier;
+    std::cout << "\n";
+
+    return {identifier, stream};
+}
+
+void UserKillStream(std::vector<std::pair<std::string, PaStream*>> streams)
+{
+    std::cout << "Select a stream to kill:\n";
+    for (int i = 0; i < streams.size(); ++i)
+    {
+        std::cout << "(" << i + 1 << ") " << streams.at(i).first << "\n";
+    }
+    std::cout << std::endl;
+
+    int choice = -1;
+    while (choice > streams.size() || choice < 1)
+    {
+        std::cout << "\033[A\033[2K\rSelection: ";
+        std::cin >> choice;
+    }
+
+    std::cout << "\033[A\rSelection: " << streams.at(choice - 1).first << "\n" << std::endl;
+
+    Pa_CloseStream(streams.at(choice - 1).second);
+    streams.erase(streams.begin() + (choice - 1));
 }
 
 
@@ -257,16 +297,65 @@ int main()
     PrintDependencyVersions();
     PrintDevices();
 
-    PaDeviceIndex input_device_i = UserSelectInputDevice();
-    PaDeviceIndex output_device_i = UserSelectOutputDevice();
+    std::vector<std::pair<std::string, PaStream*>> streams;
 
-    PaStream* stream = ProvideStream(input_device_i, output_device_i);
+    std::string user_command;
+    do
+    {
+        std::cout << "\033[2K\r:";
+        if (std::cin.peek() == '\n') std::cin.ignore();
+        std::getline(std::cin, user_command);
 
-    Pa_StartStream(stream);
 
-    int x;
-    std::cin >> x;
-    Pa_StopStream(stream);
+        std::stringstream string_stream(user_command);
+        std::string token;
+        std::vector<std::string> command_tokens;
+
+        while (std::getline(string_stream, token, ' ')) {
+            command_tokens.push_back(token);
+        }
+
+
+        if (command_tokens.at(0) == "new")
+        {
+            if (command_tokens.at(1) == "stream")
+            {
+                std::pair<std::string, PaStream*> new_stream = UserEstablishStream();
+                if (new_stream.second != NULL)
+                {
+                    streams.push_back(new_stream);
+                }
+            }
+        }
+        else if (command_tokens.at(0) == "start")
+        {
+            for (int i = 0; i < streams.size(); ++i)
+            {
+                Pa_StartStream(streams.at(i).second);
+            }
+        }
+        else if (command_tokens.at(0) == "stop")
+        {
+            for (int i = 0; i < streams.size(); ++i)
+            {
+                Pa_StopStream(streams.at(i).second);
+            }
+        }
+        else if (command_tokens.at(0) == "kill")
+        {
+            UserKillStream(streams);
+        }
+        else if (command_tokens.at(0) == "set")
+        {
+            if (command_tokens.at(1) == "gain")
+            {
+                
+            }
+        }
+    } 
+    while (user_command != "quit");
+    
+
 
     Pa_Terminate();
     SDL_Quit();
