@@ -18,6 +18,12 @@ node::SinkNode::SinkNode(std::string nickname, PaDeviceIndex device_index) : Nod
     sink_node_list.insert({nickname, this});
 }
 
+node::SinkNode::~SinkNode()
+{
+    sink_node_list.erase(this->getNickname());
+}
+
+
 double node::SinkNode::getSampleRate()
 {
     return this->sample_rate;

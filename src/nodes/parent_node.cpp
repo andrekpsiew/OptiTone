@@ -11,7 +11,7 @@ namespace node
 
 node::Node::~Node()
 {
-    node_list.erase(nickname);
+    node_list.erase(this->nickname);
 }
 
 std::string node::Node::getNickname()

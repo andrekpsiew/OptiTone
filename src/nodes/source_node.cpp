@@ -18,6 +18,12 @@ node::SourceNode::SourceNode(std::string nickname, PaDeviceIndex device_index) :
     source_node_list.insert({nickname, this});
 }
 
+node::SourceNode::~SourceNode()
+{
+    source_node_list.erase(this->getNickname());
+}
+
+
 double node::SourceNode::getSampleRate()
 {
     return this->sample_rate;

@@ -164,29 +164,6 @@ PaDeviceIndex UserSelectOutputDevice()
     return device_choices.at(choice - 1).first;
 }
 
-void UserKillStream(std::vector<std::pair<std::string, PaStream*>> streams)
-{
-    std::cout << "Select a stream to kill:\n";
-    for (int i = 0; i < streams.size(); ++i)
-    {
-        std::cout << "(" << i + 1 << ") " << streams.at(i).first << "\n";
-    }
-    std::cout << std::endl;
-
-    int choice = -1;
-    while (choice > streams.size() || choice < 1)
-    {
-        std::cout << "\033[A\033[2K\rSelection: ";
-        std::cin >> choice;
-    }
-
-    std::cout << "\033[A\rSelection: " << streams.at(choice - 1).first << "\n" << std::endl;
-
-    Pa_CloseStream(streams.at(choice - 1).second);
-    streams.erase(streams.begin() + (choice - 1));
-}
-
-
 int main()
 {
     SDL_Init(SDL_INIT_EVENTS);

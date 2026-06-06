@@ -43,6 +43,7 @@ namespace node
 
       public:
         SourceNode(std::string nickname, PaDeviceIndex device_index);
+        ~SourceNode();
 
         double          getSampleRate();
         PaDeviceIndex   getDeviceIndex();
@@ -72,6 +73,7 @@ namespace node
         
       public:
         SinkNode(std::string nickname, PaDeviceIndex device_index);
+        ~SinkNode();
 
         double          getSampleRate();
         PaDeviceIndex   getDeviceIndex();
