@@ -1,7 +1,8 @@
 #include <SDL2/SDL.h>
 #include <portaudio.h>
 
-#include "chain.h"
+#include "nodes/node.h"
+#include "stream.h"
 
 #include <iostream>
 #include <vector>
@@ -163,109 +164,6 @@ PaDeviceIndex UserSelectOutputDevice()
     return device_choices.at(choice - 1).first;
 }
 
-int audioCallback(
-    const void *input,
-    void *output,
-    unsigned long frameCount,
-    const PaStreamCallbackTimeInfo *timeInfo,
-    PaStreamCallbackFlags statusFlags,
-    void *userData)
-{
-    const float GAIN = 3.0f;
-
-    const float* in = static_cast<const float*>(input);
-    float* out = static_cast<float*>(output);
-
-    if (!in)
-        return paContinue;
-
-    for (unsigned long i = 0; i < frameCount; i++)
-    {
-        float s = in[i] * GAIN;
-
-        out[i * 2]     = s; // left
-        out[i * 2 + 1] = s; // right
-    }
-
-    return paContinue;
-}
-
-PaStream* ProvideStream(int input_device_i, int output_device_i)
-{
-    const PaDeviceInfo* input_device = Pa_GetDeviceInfo(input_device_i);
-    const PaDeviceInfo* output_device = Pa_GetDeviceInfo(output_device_i);
-
-    PaStreamParameters input_device_parameters = 
-    {
-        input_device_i,
-        input_device->maxInputChannels,
-        paFloat32,
-        input_device->defaultLowInputLatency,
-        NULL
-    };
-
-    PaStreamParameters output_device_parameters = 
-    {
-        output_device_i,
-        output_device->maxOutputChannels,
-        paFloat32,
-        output_device->defaultLowOutputLatency,
-        NULL
-    };
-
-
-    PaError format_support = Pa_IsFormatSupported(&input_device_parameters, &output_device_parameters, 48000.0);
-    
-    if (format_support != paFormatIsSupported)
-    {
-        std::cout << "ERROR: " << Pa_GetErrorText(format_support) << std::endl;
-        return NULL;
-    }
-    std::cout << "Stream between " << input_device->name << " and " << output_device->name << " is supported" << std::endl;
-
-    
-    PaStream* stream = nullptr;
-    
-    if 
-    (
-        Pa_OpenStream(
-            &stream,
-            &input_device_parameters,
-            &output_device_parameters,
-            48000.0,
-            256,
-            paNoFlag,
-            audioCallback,
-            NULL
-        ) != paNoError
-    )
-    {
-        std::cout << "ERROR: " << Pa_GetErrorText(format_support) << std::endl;
-        return NULL;
-    }
-
-    std::cout << "Opened stream between " << input_device->name << " and " << output_device->name << '\n' << std::endl;
-    return stream;
-}
-
-std::pair<std::string, PaStream*> UserEstablishStream()
-{
-    PaDeviceIndex input_device_i = UserSelectInputDevice();
-    PaDeviceIndex output_device_i = UserSelectOutputDevice();
-
-    PaStream* stream = ProvideStream(input_device_i, output_device_i);
-
-    std::cout << "\nName this stream: ";
-    
-    std::string identifier;
-    if (std::cin.peek() == '\n') std::cin.ignore();
-    std::getline(std::cin, identifier);
-    std::cin >> identifier;
-    std::cout << "\n";
-
-    return {identifier, stream};
-}
-
 void UserKillStream(std::vector<std::pair<std::string, PaStream*>> streams)
 {
     std::cout << "Select a stream to kill:\n";
@@ -296,66 +194,12 @@ int main()
 
     PrintDependencyVersions();
     PrintDevices();
-
-    std::vector<std::pair<std::string, PaStream*>> streams;
-
-    std::string user_command;
-    do
-    {
-        std::cout << "\033[2K\r:";
-        if (std::cin.peek() == '\n') std::cin.ignore();
-        std::getline(std::cin, user_command);
-
-
-        std::stringstream string_stream(user_command);
-        std::string token;
-        std::vector<std::string> command_tokens;
-
-        while (std::getline(string_stream, token, ' ')) {
-            command_tokens.push_back(token);
-        }
-
-
-        if (command_tokens.at(0) == "new")
-        {
-            if (command_tokens.at(1) == "stream")
-            {
-                std::pair<std::string, PaStream*> new_stream = UserEstablishStream();
-                if (new_stream.second != NULL)
-                {
-                    streams.push_back(new_stream);
-                }
-            }
-        }
-        else if (command_tokens.at(0) == "start")
-        {
-            for (int i = 0; i < streams.size(); ++i)
-            {
-                Pa_StartStream(streams.at(i).second);
-            }
-        }
-        else if (command_tokens.at(0) == "stop")
-        {
-            for (int i = 0; i < streams.size(); ++i)
-            {
-                Pa_StopStream(streams.at(i).second);
-            }
-        }
-        else if (command_tokens.at(0) == "kill")
-        {
-            UserKillStream(streams);
-        }
-        else if (command_tokens.at(0) == "set")
-        {
-            if (command_tokens.at(1) == "gain")
-            {
-                
-            }
-        }
-    } 
-    while (user_command != "quit");
     
+    new node::SourceNode("input1", 0);
+    new node::SinkNode("output1", 1);
+    new node::Stream(node::Node::get<node::SourceNode>("input1"), node::Node::get<node::SinkNode>("output1"));
 
+    Pa_Sleep(4000);
 
     Pa_Terminate();
     SDL_Quit();

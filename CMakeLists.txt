@@ -7,15 +7,20 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
 add_executable(${PROJECT_NAME}
+    # src/
     src/main.cpp
-    src/source.cpp
-    src/pipeline.cpp
-    src/sink.cpp
+    src/stream.cpp
+
+    # src/nodes/
+    src/nodes/parent_node.cpp
+    src/nodes/process_node.cpp
+    src/nodes/sink_node.cpp
+    src/nodes/source_node.cpp
 )
 
 find_package(SDL2 REQUIRED)
 
-include_directories(/opt/homebrew/include)
+include_directories(/opt/homebrew/include) # if this fails then put wherever these libraries are found on your machine :/
 
 target_link_libraries(
     ${PROJECT_NAME}
