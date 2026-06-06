@@ -195,11 +195,17 @@ int main()
     PrintDependencyVersions();
     PrintDevices();
     
-    new node::SourceNode("input1", 0);
-    new node::SinkNode("output1", 1);
-    new node::Stream(node::Node::get<node::SourceNode>("input1"), node::Node::get<node::SinkNode>("output1"));
+    PaDeviceIndex input = UserSelectInputDevice();
+    new node::SourceNode("mic", input);
 
+    PaDeviceIndex output = UserSelectOutputDevice();
+    new node::SinkNode("earbuds", output);
+
+    new node::Stream(node::Node::get<node::SourceNode>("mic"), node::Node::get<node::SinkNode>("earbuds"));
+
+    node::Stream::start();
     Pa_Sleep(4000);
+    node::Stream::stop();
 
     Pa_Terminate();
     SDL_Quit();

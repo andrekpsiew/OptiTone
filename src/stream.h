@@ -12,7 +12,12 @@ namespace node
         /* SourceNode to SinkNode constructor */
         Stream(node::SourceNode* source, node::SinkNode* sink);
 
-      private:
+        static void start();
+        static void stop();
 
+      private:
+        inline static std::vector<Stream*> stream_list;
+
+        PaStream* stream_ptr;
     };
 }

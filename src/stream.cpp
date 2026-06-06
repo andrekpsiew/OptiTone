@@ -60,7 +60,6 @@ node::Stream::Stream(node::SourceNode* source, node::SinkNode* sink)
     if (format_support != paFormatIsSupported)
     {
         std::cout << "ERROR: " << Pa_GetErrorText(format_support) << std::endl;
-        // error
     }
 
     std::cout << "Stream between " << source->getNickname() << " and " << sink->getNickname() << " is supported" << std::endl;
@@ -85,11 +84,27 @@ node::Stream::Stream(node::SourceNode* source, node::SinkNode* sink)
     )
     {
         std::cout << "ERROR: " << Pa_GetErrorText(format_support) << std::endl;
-        // error
     }
 
+    this->stream_ptr = stream;
+
+    stream_list.push_back(this);
+
     std::cout << "Opened stream between " << source->getNickname() << " and " << sink->getNickname() << '\n' << std::endl;
-    
-    // somehow return the stream
-    Pa_StartStream(stream);
+}
+
+void node::Stream::start()
+{
+    for (int i = 0; i < stream_list.size(); i++)
+    {
+        Pa_StartStream(stream_list.at(i)->stream_ptr);
+    }
+}
+
+void node::Stream::stop()
+{
+    for (int i = 0; i < stream_list.size(); i++)
+    {
+        Pa_StopStream(stream_list.at(i)->stream_ptr);
+    }
 }
