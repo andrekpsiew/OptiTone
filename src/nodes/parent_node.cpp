@@ -14,6 +14,11 @@ node::Node::~Node()
     node_list.erase(this->nickname);
 }
 
+void node::Node::remove(std::string nickname)
+{
+    node_list.erase(nickname);
+}
+
 std::string node::Node::getNickname()
 {
     return this->nickname;

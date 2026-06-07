@@ -29,7 +29,6 @@ int audioCallback(
     return paContinue;
 }
 
-
 node::Stream::Stream(node::SourceNode* source, node::SinkNode* sink)
 {
     /* generate parameters from provided nodes */
@@ -88,23 +87,39 @@ node::Stream::Stream(node::SourceNode* source, node::SinkNode* sink)
 
     this->stream_ptr = stream;
 
-    stream_list.push_back(this);
+    this->input = source;
+    this->output = sink;
+
+    stream_list.insert({{source, sink}, this});
 
     std::cout << "Opened stream between " << source->getNickname() << " and " << sink->getNickname() << '\n' << std::endl;
 }
 
+node::Stream::~Stream()
+{
+    Pa_CloseStream(this->stream_ptr);
+    stream_list.erase({this->input, this->output});
+}
+
+
+void node::Stream::remove(SourceNode* source, SinkNode* sink)
+{
+    auto stream = stream_list.find({source, sink});
+    delete stream->second;
+}
+
 void node::Stream::start()
 {
-    for (int i = 0; i < stream_list.size(); i++)
+    for (auto& [key, stream] : stream_list)
     {
-        Pa_StartStream(stream_list.at(i)->stream_ptr);
+        Pa_StartStream(stream->stream_ptr);
     }
 }
 
 void node::Stream::stop()
 {
-    for (int i = 0; i < stream_list.size(); i++)
+    for (auto& [key, stream] : stream_list)
     {
-        Pa_StopStream(stream_list.at(i)->stream_ptr);
+        Pa_StopStream(stream->stream_ptr);
     }
 }

@@ -123,6 +123,7 @@ PaDeviceIndex UserSelectInputDevice()
         std::cout << "\033[A\033[2K\rSelection: ";
         std::cin >> choice;
     }
+    std::cin.ignore();
 
     std::cout << "\033[A\rSelection: " << device_choices.at(choice - 1).second->name << "\n" << std::endl;
 
@@ -157,11 +158,68 @@ PaDeviceIndex UserSelectOutputDevice()
         std::cout << "\033[A\033[2K\rSelection: ";
         std::cin >> choice;
     }
+    std::cin.ignore();
 
     std::cout << "\033[A\rSelection: " << device_choices.at(choice - 1).second->name << "\n" << std::endl;
 
 
     return device_choices.at(choice - 1).first;
+}
+
+void ExecuteCommand(std::vector<std::string> tokens)
+{
+    if (tokens.at(0) == "create")
+    {
+        if (tokens.at(1) == "source")
+        {
+            new node::SourceNode(tokens.at(2), UserSelectInputDevice());
+        }
+        if (tokens.at(1) == "sink")
+        {
+            new node::SinkNode(tokens.at(2), UserSelectOutputDevice());
+        }
+    }
+    if (tokens.at(0) == "remove")
+    {
+        if (tokens.at(1) == "node")
+        {
+            node::Node::remove(tokens.at(2));
+        }
+        if (tokens.at(1) == "connection")
+        {
+            node::Stream::remove(node::Node::get<node::SourceNode>(tokens.at(2)), node::Node::get<node::SinkNode>(tokens.at(3)));
+        }
+    }
+    if (tokens.at(0) == "connect" && tokens.at(2) == "to")
+    {
+        new node::Stream(node::Node::get<node::SourceNode>(tokens.at(1)), node::Node::get<node::SinkNode>(tokens.at(3)));
+    }
+    if (tokens.at(0) == "start")
+    {
+        node::Stream::start();
+    }
+    if (tokens.at(0) == "stop")
+    {
+        node::Stream::stop();
+    }
+}
+
+void MainLoop()
+{
+    std::string user_command;
+
+    do
+    {
+        std::getline(std::cin, user_command);
+
+        std::vector<std::string> tokens;
+        std::string token;
+        std::stringstream command_buffer(user_command); 
+        while (std::getline(command_buffer, token, ' ')) tokens.push_back(token);
+
+        ExecuteCommand(tokens);
+    }
+    while (user_command != "quit");
 }
 
 int main()
@@ -171,18 +229,8 @@ int main()
 
     PrintDependencyVersions();
     PrintDevices();
-    
-    PaDeviceIndex input = UserSelectInputDevice();
-    new node::SourceNode("mic", input);
 
-    PaDeviceIndex output = UserSelectOutputDevice();
-    new node::SinkNode("earbuds", output);
-
-    new node::Stream(node::Node::get<node::SourceNode>("mic"), node::Node::get<node::SinkNode>("earbuds"));
-
-    node::Stream::start();
-    Pa_Sleep(4000);
-    node::Stream::stop();
+    MainLoop();
 
     Pa_Terminate();
     SDL_Quit();

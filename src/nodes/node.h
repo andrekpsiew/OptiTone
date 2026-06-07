@@ -16,6 +16,7 @@ namespace node
         virtual ~Node();
 
         std::string getNickname();
+        static void remove(std::string nickname);
 
         /* returns a node found in the hashmap by its true type */
         template <typename NodeType> static NodeType* get(std::string nickname)
@@ -45,6 +46,7 @@ namespace node
         SourceNode(std::string nickname, PaDeviceIndex device_index);
         ~SourceNode();
 
+        /* getter methods to access attributes */
         double          getSampleRate();
         PaDeviceIndex   getDeviceIndex();
         short int       getTotalChannels();
@@ -75,6 +77,7 @@ namespace node
         SinkNode(std::string nickname, PaDeviceIndex device_index);
         ~SinkNode();
 
+        /* getter methods to access attributes */
         double          getSampleRate();
         PaDeviceIndex   getDeviceIndex();
         short int       getTotalChannels();
