@@ -16,7 +16,8 @@ node::Node::~Node()
 
 void node::Node::remove(std::string nickname)
 {
-    node_list.erase(nickname);
+    auto node = node_list.find(nickname);
+    if (node != node_list.end()) delete node->second;
 }
 
 std::string node::Node::getNickname()

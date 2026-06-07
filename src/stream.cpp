@@ -105,7 +105,7 @@ node::Stream::~Stream()
 void node::Stream::remove(SourceNode* source, SinkNode* sink)
 {
     auto stream = stream_list.find({source, sink});
-    delete stream->second;
+    if (stream != stream_list.end()) delete stream->second;
 }
 
 void node::Stream::start()
