@@ -14,8 +14,13 @@ node::SinkNode::SinkNode(std::string nickname, PaDeviceIndex device_index) : Nod
     this->suggested_low_latency = device_info->defaultLowOutputLatency;
     this->suggested_high_latency = device_info->defaultHighOutputLatency;
 
+    for (int i = 0; i < this->total_channels; i++)
+    {
+        this->channel_list.push_back({"channel" + std::to_string(i), i});
+    }
 
     sink_node_list.insert({nickname, this});
+    printSelf();
 }
 
 node::SinkNode::~SinkNode()
@@ -47,4 +52,13 @@ PaTime node::SinkNode::getSuggestedHighLatency()
 PaDeviceIndex node::SinkNode::getDeviceIndex()
 {
     return this->device_index;
+}
+
+void node::SinkNode::printSelf()
+{
+    std::cout << "Source node '" << this->getNickname() << "':\n";
+    for (int i = 0; i < this->channel_list.size(); i++)
+    {
+        std::cout << "  " << i << ". '" << channel_list.at(i).first << "'\n";
+    }
 }

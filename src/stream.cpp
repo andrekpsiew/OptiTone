@@ -61,7 +61,7 @@ node::Stream::Stream(node::SourceNode* source, node::SinkNode* sink)
         std::cout << "ERROR: " << Pa_GetErrorText(format_support) << std::endl;
     }
 
-    std::cout << "Stream between " << source->getNickname() << " and " << sink->getNickname() << " is supported" << std::endl;
+    std::cout << "- Stream between " << source->getNickname() << " and " << sink->getNickname() << " is supported" << std::endl;
 
     
     /* open the stream */
@@ -92,7 +92,7 @@ node::Stream::Stream(node::SourceNode* source, node::SinkNode* sink)
 
     stream_list.insert({{source, sink}, this});
 
-    std::cout << "Opened stream between " << source->getNickname() << " and " << sink->getNickname() << '\n' << std::endl;
+    std::cout << "- Created connection between " << source->getNickname() << " and " << sink->getNickname() << '\n' << std::endl;
 }
 
 node::Stream::~Stream()
@@ -105,7 +105,11 @@ node::Stream::~Stream()
 void node::Stream::remove(SourceNode* source, SinkNode* sink)
 {
     auto stream = stream_list.find({source, sink});
-    if (stream != stream_list.end()) delete stream->second;
+    if (stream != stream_list.end())
+    {
+        delete stream->second;
+        std::cout << "- Removed connection between " << source->getNickname() << " and " << sink->getNickname() << '\n' << std::endl;
+    }
 }
 
 void node::Stream::start()

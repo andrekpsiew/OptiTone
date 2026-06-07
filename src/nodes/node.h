@@ -2,6 +2,7 @@
 
 #include <portaudio.h>
 #include <unordered_map>
+#include <iostream>
 #include <vector>
 #include <string>
 
@@ -46,6 +47,8 @@ namespace node
         SourceNode(std::string nickname, PaDeviceIndex device_index);
         ~SourceNode();
 
+        void printSelf();
+
         /* getter methods to access attributes */
         double          getSampleRate();
         PaDeviceIndex   getDeviceIndex();
@@ -58,6 +61,8 @@ namespace node
         inline static   std::unordered_map<std::string, SourceNode*> source_node_list;
 
         /* attributes of each SourceNode object */
+        std::vector<std::pair<std::string, int>> channel_list;
+
         double          sample_rate;
         PaDeviceIndex   device_index;
         short int       total_channels;
@@ -77,7 +82,11 @@ namespace node
         SinkNode(std::string nickname, PaDeviceIndex device_index);
         ~SinkNode();
 
+        void printSelf();
+
         /* getter methods to access attributes */
+        std::vector<std::pair<std::string, int>> channel_list;
+
         double          getSampleRate();
         PaDeviceIndex   getDeviceIndex();
         short int       getTotalChannels();
