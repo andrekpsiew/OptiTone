@@ -14,12 +14,15 @@ add_executable(${PROJECT_NAME}
     # src/node/
     src/node/parent_node.cpp
     src/node/process_node.cpp
-    src/node/sink_node.cpp
-    src/node/source_node.cpp
+    src/node/outputNode.cpp
+    src/node/inputNode.cpp
 
     # src/io
     src/io/source.cpp
+    src/io/deviceSource.cpp
+
     src/io/sink.cpp
+    src/io/deviceSink.cpp
 )
 
 find_package(SDL2 REQUIRED)
