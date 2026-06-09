@@ -7,9 +7,9 @@ namespace node
 {
     struct PairHash
     {
-      size_t operator()(const std::pair<SourceNode*, SinkNode*>& p) const
+      size_t operator()(const std::pair<InputNode*, SinkNode*>& p) const
       {
-          size_t h1 = std::hash<SourceNode*>{}(p.first);
+          size_t h1 = std::hash<InputNode*>{}(p.first);
           size_t h2 = std::hash<SinkNode*>{}(p.second);
           return h1 ^ (h2 << 1);
       }
@@ -18,19 +18,19 @@ namespace node
     class Stream
     {
       public:
-        /* SourceNode to SinkNode constructor */
-        Stream(node::SourceNode* source, node::SinkNode* sink);
+        /* InputNode to SinkNode constructor */
+        Stream(node::InputNode* source, node::SinkNode* sink);
         ~Stream();
 
         static void start();
         static void stop();
-        static void remove(SourceNode* source, SinkNode* sink);
+        static void remove(InputNode* source, SinkNode* sink);
 
       private:
-        inline static std::unordered_map<std::pair<SourceNode*, SinkNode*>, Stream*, PairHash> stream_list;
+        inline static std::unordered_map<std::pair<InputNode*, SinkNode*>, Stream*, PairHash> stream_list;
 
         PaStream*     stream_ptr;
-        SourceNode*   input;
+        InputNode*   input;
         SinkNode*     output;
     };
 }

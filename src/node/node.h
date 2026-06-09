@@ -6,6 +6,8 @@
 #include <vector>
 #include <string>
 
+#include "../io/io.h"
+
 
 namespace node
 {
@@ -37,34 +39,35 @@ namespace node
 
 
     /* for managing all SourceNode objects and for setting up SourceNode objects */
-    class SourceNode : public Node
+    class InputNode : public Node
     {
         /* hide higher level methods from being used by this child class */
         private: using Node::get;
       
 
       public:
-        SourceNode(std::string nickname, PaDeviceIndex device_index);
-        ~SourceNode();
+        InputNode(std::string nickname, io::Source* source_ptr);
+        ~InputNode();
 
         void printSelf();
+        PaDeviceIndex getDeviceIndex();
 
         /* getter methods to access attributes */
         double          getSampleRate();
-        PaDeviceIndex   getDeviceIndex();
         short int       getTotalChannels();
         PaTime          getSuggestedLowLatency();
         PaTime          getSuggestedHighLatency();
 
+        io::Source* source;
+
       private:
         /* list of every SourceNode object, lookup by string identifer */
-        inline static   std::unordered_map<std::string, SourceNode*> source_node_list;
+        inline static   std::unordered_map<std::string, InputNode*> source_node_list;
 
         /* attributes of each SourceNode object */
         std::vector<std::pair<std::string, int>> channel_list;
 
         double          sample_rate;
-        PaDeviceIndex   device_index;
         short int       total_channels;
         PaTime          suggested_low_latency;   
         PaTime          suggested_high_latency;

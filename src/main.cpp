@@ -2,6 +2,7 @@
 #include <portaudio.h>
 
 #include "node/node.h"
+#include "io/io.h"
 #include "stream.h"
 
 #include <iostream>
@@ -166,13 +167,14 @@ PaDeviceIndex UserSelectOutputDevice()
     return device_choices.at(choice - 1).first;
 }
 
+/*
 void ExecuteCommand(std::vector<std::string> tokens)
 {
     if (tokens.at(0) == "create")
     {
         if (tokens.at(1) == "source")
         {
-            new node::SourceNode(tokens.at(2), UserSelectInputDevice());
+            new node::InputNode(tokens.at(2), UserSelectInputDevice());
         }
         if (tokens.at(1) == "sink")
         {
@@ -187,12 +189,12 @@ void ExecuteCommand(std::vector<std::string> tokens)
         }
         if (tokens.at(1) == "connection")
         {
-            node::Stream::remove(node::Node::get<node::SourceNode>(tokens.at(2)), node::Node::get<node::SinkNode>(tokens.at(3)));
+            node::Stream::remove(node::Node::get<node::InputNode>(tokens.at(2)), node::Node::get<node::SinkNode>(tokens.at(3)));
         }
     }
     if (tokens.at(0) == "connect" && tokens.at(2) == "to")
     {
-        new node::Stream(node::Node::get<node::SourceNode>(tokens.at(1)), node::Node::get<node::SinkNode>(tokens.at(3)));
+        new node::Stream(node::Node::get<node::InputNode>(tokens.at(1)), node::Node::get<node::SinkNode>(tokens.at(3)));
     }
     if (tokens.at(0) == "start")
     {
@@ -221,6 +223,7 @@ void MainLoop()
     }
     while (user_command != "quit");
 }
+*/
 
 int main()
 {
@@ -230,7 +233,8 @@ int main()
     PrintDependencyVersions();
     PrintDevices();
 
-    MainLoop();
+    io::DeviceSource source(0);
+    node::InputNode input("input", &source);
 
     Pa_Terminate();
     SDL_Quit();

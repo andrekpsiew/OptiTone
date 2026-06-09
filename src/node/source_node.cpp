@@ -1,11 +1,14 @@
 #include "node.h"
+#include "../io/io.h"
 
-node::SourceNode::SourceNode(std::string nickname, PaDeviceIndex device_index) : Node(nickname)
+node::InputNode::InputNode(std::string nickname, io::Source* source_ptr) : Node(nickname)
 {
-    const PaDeviceInfo* device_info = Pa_GetDeviceInfo(device_index);
 
     /* initializes attributes from provided device information */
-    this->device_index = device_index;
+    this->source = source_ptr;
+
+    io::DeviceSource* device_source = dynamic_cast<io::DeviceSource*>(source_ptr);
+    const PaDeviceInfo* device_info = Pa_GetDeviceInfo(device_source->getDeviceIndex());
 
     this->total_channels = device_info->maxInputChannels;
 
@@ -23,38 +26,38 @@ node::SourceNode::SourceNode(std::string nickname, PaDeviceIndex device_index) :
     printSelf();
 }
 
-node::SourceNode::~SourceNode()
+node::InputNode::~InputNode()
 {
     source_node_list.erase(this->getNickname());
 }
 
+PaDeviceIndex node::InputNode::getDeviceIndex()
+{
+    return dynamic_cast<io::DeviceSource*>(this->source)->getDeviceIndex();
+}
 
-double node::SourceNode::getSampleRate()
+
+double node::InputNode::getSampleRate()
 {
     return this->sample_rate;
 }
 
-short int node::SourceNode::getTotalChannels()
+short int node::InputNode::getTotalChannels()
 {
     return this->total_channels;
 }
 
-PaTime node::SourceNode::getSuggestedLowLatency()
+PaTime node::InputNode::getSuggestedLowLatency()
 {
     return this->suggested_low_latency;
 }
 
-PaTime node::SourceNode::getSuggestedHighLatency()
+PaTime node::InputNode::getSuggestedHighLatency()
 {
     return this->suggested_high_latency;
 }
 
-PaDeviceIndex node::SourceNode::getDeviceIndex()
-{
-    return this->device_index;
-}
-
-void node::SourceNode::printSelf()
+void node::InputNode::printSelf()
 {
     std::cout << "Source node '" << this->getNickname() << "':\n";
     for (int i = 0; i < this->channel_list.size(); i++)

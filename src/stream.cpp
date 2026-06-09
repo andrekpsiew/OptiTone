@@ -29,16 +29,16 @@ int audioCallback(
     return paContinue;
 }
 
-node::Stream::Stream(node::SourceNode* source, node::SinkNode* sink)
+node::Stream::Stream(node::InputNode* input, node::SinkNode* sink)
 {
     /* generate parameters from provided nodes */
 
     PaStreamParameters input_node_parameters = 
     {
-        source->getDeviceIndex(),
-        source->getTotalChannels(),
+        input->getDeviceIndex(),
+        input->getTotalChannels(),
         paFloat32,
-        source->getSuggestedLowLatency(),
+        input->getSuggestedLowLatency(),
         NULL
     };
 
@@ -61,7 +61,7 @@ node::Stream::Stream(node::SourceNode* source, node::SinkNode* sink)
         std::cout << "ERROR: " << Pa_GetErrorText(format_support) << std::endl;
     }
 
-    std::cout << "- Stream between " << source->getNickname() << " and " << sink->getNickname() << " is supported" << std::endl;
+    std::cout << "- Stream between " << input->getNickname() << " and " << sink->getNickname() << " is supported" << std::endl;
 
     
     /* open the stream */
@@ -87,12 +87,12 @@ node::Stream::Stream(node::SourceNode* source, node::SinkNode* sink)
 
     this->stream_ptr = stream;
 
-    this->input = source;
+    this->input = input;
     this->output = sink;
 
-    stream_list.insert({{source, sink}, this});
+    stream_list.insert({{input, sink}, this});
 
-    std::cout << "- Created connection between " << source->getNickname() << " and " << sink->getNickname() << '\n' << std::endl;
+    std::cout << "- Created connection between " << input->getNickname() << " and " << sink->getNickname() << '\n' << std::endl;
 }
 
 node::Stream::~Stream()
@@ -102,13 +102,13 @@ node::Stream::~Stream()
 }
 
 
-void node::Stream::remove(SourceNode* source, SinkNode* sink)
+void node::Stream::remove(InputNode* input, SinkNode* sink)
 {
-    auto stream = stream_list.find({source, sink});
+    auto stream = stream_list.find({input, sink});
     if (stream != stream_list.end())
     {
         delete stream->second;
-        std::cout << "- Removed connection between " << source->getNickname() << " and " << sink->getNickname() << '\n' << std::endl;
+        std::cout << "- Removed connection between " << input->getNickname() << " and " << sink->getNickname() << '\n' << std::endl;
     }
 }
 
