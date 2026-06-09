@@ -1,7 +1,7 @@
 #pragma once
 
 #include <portaudio.h>
-#include "nodes/node.h"
+#include "node/node.h"
 
 namespace node
 {

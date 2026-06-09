@@ -1,7 +1,7 @@
 #include <SDL2/SDL.h>
 #include <portaudio.h>
 
-#include "nodes/node.h"
+#include "node/node.h"
 #include "stream.h"
 
 #include <iostream>

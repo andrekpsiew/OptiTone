@@ -11,11 +11,11 @@ add_executable(${PROJECT_NAME}
     src/main.cpp
     src/stream.cpp
 
-    # src/nodes/
-    src/nodes/parent_node.cpp
-    src/nodes/process_node.cpp
-    src/nodes/sink_node.cpp
-    src/nodes/source_node.cpp
+    # src/node/
+    src/node/parent_node.cpp
+    src/node/process_node.cpp
+    src/node/sink_node.cpp
+    src/node/source_node.cpp
 
     # src/io
     src/io/source.cpp
