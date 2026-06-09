@@ -224,7 +224,7 @@ void MainLoop()
 
 int main()
 {
-    SDL_Init(SDL_INIT_EVENTS);
+    SDL_Init(SDL_INIT_EVENTS) ;
     Pa_Initialize();
 
     PrintDependencyVersions();

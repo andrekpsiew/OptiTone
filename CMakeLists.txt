@@ -16,6 +16,10 @@ add_executable(${PROJECT_NAME}
     src/nodes/process_node.cpp
     src/nodes/sink_node.cpp
     src/nodes/source_node.cpp
+
+    # src/io
+    src/io/source.cpp
+    src/io/sink.cpp
 )
 
 find_package(SDL2 REQUIRED)
